@@ -4,6 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="#eee"
     tools:context=".MainActivity"
     tools:ignore="HardcodedText,RtlSymmetry">
 
@@ -67,7 +68,8 @@
                 android:id="@+id/contactListView"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:nestedScrollingEnabled="true"/>
+                android:divider="#00ffffff"
+                android:nestedScrollingEnabled="true" />
 
         </LinearLayout>
 

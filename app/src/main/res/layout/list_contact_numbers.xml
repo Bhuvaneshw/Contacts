@@ -23,19 +23,6 @@
         android:padding="12dp">
 
         <TextView
-            android:id="@+id/iconText"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:layout_marginLeft="10dp"
-            android:layout_marginRight="10dp"
-            android:background="@drawable/xml_contact_icon_bg"
-            android:gravity="center"
-            android:text="A"
-            android:textColor="@color/white"
-            android:textSize="22sp"
-            android:textStyle="bold" />
-
-        <TextView
             android:id="@+id/name"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

@@ -2,6 +2,8 @@ package com.acutecoder.contacts
 
 import android.Manifest
 import android.annotation.SuppressLint
+import android.app.ProgressDialog
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Color
 import android.os.Bundle
@@ -13,6 +15,8 @@ import androidx.core.content.ContextCompat
 import com.acutecoder.contacts.adapter.ContactAdapter
 import com.acutecoder.contacts.contact.ContactManager
 import com.acutecoder.contacts.databinding.ActivityMainBinding
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.database.FirebaseDatabase
 
 
 /**
@@ -24,9 +28,13 @@ import com.acutecoder.contacts.databinding.ActivityMainBinding
 class MainActivity : AppCompatActivity() {
 
     private lateinit var v: ActivityMainBinding
+    private lateinit var auth: FirebaseAuth
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        auth = FirebaseAuth.getInstance()
+        if (!checkUser()) return
+
         v = ActivityMainBinding.inflate(layoutInflater)
         setContentView(v.root)
 
@@ -37,16 +45,33 @@ class MainActivity : AppCompatActivity() {
             init()
     }
 
+    private fun checkUser(): Boolean {
+        if (auth.currentUser == null) {
+            startActivity(Intent(this, LoginActivity::class.java))
+            finish()
+            return false
+        }
+        return true
+    }
+
+    override fun onStart() {
+        super.onStart()
+        checkUser()
+    }
+
     @SuppressLint("SetTextI18n")
     private fun init() {
-        val data = ContactManager.getContactList(contentResolver)
+        val data = ContactManager.getContactList(this)
         data.updateContactSize()
         data.apply {
             sort()
             insertHeaders()
         }
         v.contactSize.text = "${data.contactSize} total Contacts"
-        val adapter = ContactAdapter(this, data)
+        val adapter = ContactAdapter(this, data) {
+            ContactDetailsActivity.contact = it
+            startActivity(Intent(this, ContactDetailsActivity::class.java))
+        }
         v.contactListView.adapter = adapter
         adapter.notifyDataSetChanged()
     }
@@ -85,8 +110,33 @@ class MainActivity : AppCompatActivity() {
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
-            R.id.exportContacts ->
-                toast("Export Contacts")
+            R.id.exportContacts -> {
+                val dialog = ProgressDialog(this)
+                dialog.setMessage("Syncing")
+                dialog.setCancelable(false)
+                dialog.show()
+                val ref = FirebaseDatabase.getInstance()
+                    .getReference(auth.currentUser!!.uid + "/contact")
+                FirebaseDatabase.getInstance()
+                    .getReference(auth.currentUser!!.uid + "/name")
+                    .setValue(auth.currentUser!!.displayName)
+                    .addOnCompleteListener {
+                        FirebaseDatabase.getInstance()
+                            .getReference(auth.currentUser!!.uid + "/email")
+                            .setValue(auth.currentUser!!.email)
+                            .addOnCompleteListener {
+                            }
+                    }
+                Thread {
+                    ref.setValue(ContactManager.getCompleteContactList(this))
+                        .addOnCompleteListener {
+                            runOnUiThread {
+                                dialog.dismiss()
+                                toast("Sync Completed")
+                            }
+                        }
+                }.start()
+            }
         }
         return super.onOptionsItemSelected(item)
     }
