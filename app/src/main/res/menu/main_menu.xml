@@ -10,10 +10,10 @@
         android:title="Export Contact"
         app:showAsAction="always" />
 
-    <item
-        android:id="@+id/exportContacts"
-        android:icon="@drawable/baseline_send_to_mobile_24"
-        android:title="Export Contact"
-        app:showAsAction="ifRoom" />
+<!--    <item-->
+<!--        android:id="@+id/exportContacts"-->
+<!--        android:icon="@drawable/baseline_send_to_mobile_24"-->
+<!--        android:title="Export Contact"-->
+<!--        app:showAsAction="ifRoom" />-->
 
 </menu>

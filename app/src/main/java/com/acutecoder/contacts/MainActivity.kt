@@ -2,7 +2,6 @@ package com.acutecoder.contacts
 
 import android.Manifest
 import android.annotation.SuppressLint
-import android.app.ProgressDialog
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Color
@@ -19,7 +18,6 @@ import com.acutecoder.contacts.adapter.ContactAdapter
 import com.acutecoder.contacts.contact.ContactManager
 import com.acutecoder.contacts.databinding.ActivityMainBinding
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.database.FirebaseDatabase
 
 
 /**
@@ -36,7 +34,7 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         auth = FirebaseAuth.getInstance()
-        if (!checkUser()) return
+//        if (!checkUser()) return
 
         v = ActivityMainBinding.inflate(layoutInflater)
         setContentView(v.root)
@@ -117,7 +115,7 @@ class MainActivity : AppCompatActivity() {
                     Manifest.permission.READ_CONTACTS
                 ) != PackageManager.PERMISSION_GRANTED
             ) {
-                toast("Permission Not Granted! Exiting...")
+                toast()
                 finishAffinity()
             } else init()
         }
@@ -126,33 +124,33 @@ class MainActivity : AppCompatActivity() {
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
-            R.id.exportContacts -> {
-                val dialog = ProgressDialog(this)
-                dialog.setMessage("Syncing")
-                dialog.setCancelable(false)
-                dialog.show()
-                val ref = FirebaseDatabase.getInstance()
-                    .getReference(auth.currentUser!!.uid + "/contact")
-                FirebaseDatabase.getInstance()
-                    .getReference(auth.currentUser!!.uid + "/name")
-                    .setValue(auth.currentUser!!.displayName)
-                    .addOnCompleteListener {
-                        FirebaseDatabase.getInstance()
-                            .getReference(auth.currentUser!!.uid + "/email")
-                            .setValue(auth.currentUser!!.email)
-                            .addOnCompleteListener {
-                            }
-                    }
-                Thread {
-                    ref.setValue(ContactManager.getCompleteContactList(this))
-                        .addOnCompleteListener {
-                            runOnUiThread {
-                                dialog.dismiss()
-                                toast("Sync Completed")
-                            }
-                        }
-                }.start()
-            }
+//            R.id.exportContacts -> {
+//                val dialog = ProgressDialog(this)
+//                dialog.setMessage("Syncing")
+//                dialog.setCancelable(false)
+//                dialog.show()
+//                val ref = FirebaseDatabase.getInstance()
+//                    .getReference(auth.currentUser!!.uid + "/contact")
+//                FirebaseDatabase.getInstance()
+//                    .getReference(auth.currentUser!!.uid + "/name")
+//                    .setValue(auth.currentUser!!.displayName)
+//                    .addOnCompleteListener {
+//                        FirebaseDatabase.getInstance()
+//                            .getReference(auth.currentUser!!.uid + "/email")
+//                            .setValue(auth.currentUser!!.email)
+//                            .addOnCompleteListener {
+//                            }
+//                    }
+//                Thread {
+//                    ref.setValue(ContactManager.getCompleteContactList(this))
+//                        .addOnCompleteListener {
+//                            runOnUiThread {
+//                                dialog.dismiss()
+//                                toast("Sync Completed")
+//                            }
+//                        }
+//                }.start()
+//            }
 
             R.id.search -> {
                 v.searchCon.apply {
@@ -171,5 +169,6 @@ class MainActivity : AppCompatActivity() {
         return true
     }
 
-    private fun toast(msg: String) = Toast.makeText(this, msg, Toast.LENGTH_SHORT).show()
+    private fun toast(msg: String = "Permission Not Granted! Exiting...") =
+        Toast.makeText(this, msg, Toast.LENGTH_SHORT).show()
 }
