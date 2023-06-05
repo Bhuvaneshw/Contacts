@@ -7,8 +7,11 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Color
 import android.os.Bundle
+import android.text.Editable
+import android.text.TextWatcher
 import android.view.Menu
 import android.view.MenuItem
+import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
@@ -67,6 +70,7 @@ class MainActivity : AppCompatActivity() {
             sort()
             insertHeaders()
         }
+
         v.contactSize.text = "${data.contactSize} total Contacts"
         val adapter = ContactAdapter(this, data) {
             ContactDetailsActivity.contact = it
@@ -74,6 +78,18 @@ class MainActivity : AppCompatActivity() {
         }
         v.contactListView.adapter = adapter
         adapter.notifyDataSetChanged()
+
+        v.search.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
+            }
+
+            override fun onTextChanged(text: CharSequence?, start: Int, before: Int, count: Int) {
+                adapter.getFilter().filter(text)
+            }
+
+            override fun afterTextChanged(s: Editable?) {
+            }
+        })
     }
 
     private fun checkPermissions(): Boolean {
@@ -136,6 +152,15 @@ class MainActivity : AppCompatActivity() {
                             }
                         }
                 }.start()
+            }
+
+            R.id.search -> {
+                v.searchCon.apply {
+                    if (visibility == View.VISIBLE)
+                        visibility = View.GONE
+                    else
+                        visibility = View.VISIBLE
+                }
             }
         }
         return super.onOptionsItemSelected(item)

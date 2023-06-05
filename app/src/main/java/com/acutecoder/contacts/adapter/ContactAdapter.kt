@@ -3,10 +3,10 @@ package com.acutecoder.contacts.adapter
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.res.ColorStateList
-import android.graphics.Color
 import android.view.View
 import android.view.ViewGroup
 import android.widget.BaseAdapter
+import android.widget.Filter
 import android.widget.TextView
 import com.acutecoder.contacts.R
 import com.acutecoder.contacts.contact.Contact
@@ -26,18 +26,19 @@ class ContactAdapter(
     private val activity: Activity,
     private val data: ContactList,
     private val onClick: OnClickListener? = null
-) :
-    BaseAdapter() {
+) : BaseAdapter() {
 
-    override fun getCount() = data.size
+    private var filteredData = data
 
-    override fun getItem(position: Int): Contact = data[position]
+    override fun getCount() = filteredData.size
+
+    override fun getItem(position: Int): Contact = filteredData[position]
 
     override fun getItemId(position: Int) = -1L
 
     @SuppressLint("SetTextI18n")
     override fun getView(position: Int, convertView: View?, parent: ViewGroup?): View {
-        val contact = data[position]
+        val contact = filteredData[position]
         val view =
             if (contact is Title) ListContactTitleBinding.inflate(activity.layoutInflater).root.apply {
                 findViewById<TextView>(R.id.icon).apply {
@@ -64,21 +65,52 @@ class ContactAdapter(
                     backgroundTintList = ColorStateList.valueOf(contact.color)
                 }
                 setOnClickListener {
-                    onClick?.onClick(data[position])
+                    onClick?.onClick(filteredData[position])
                 }
             }
 
         return view
     }
 
+    fun getFilter(): Filter {
+        return object : Filter() {
+            override fun performFiltering(constraint: CharSequence?): FilterResults {
+                val results = FilterResults()
+
+                if (constraint.isNullOrEmpty()) {
+                    results.values = data
+                    results.count = data.size
+                } else {
+                    val filtered = ContactList()
+                    for (contact in data) {
+                        if (contact !is Title && contact.name.lowercase().contains(
+                                constraint.toString().lowercase()
+                            )
+                        ) {
+                            filtered.add(contact)
+                        }
+                    }
+                    results.values = filtered
+                    results.count = filtered.size
+                }
+                return results
+            }
+
+            override fun publishResults(constraint: CharSequence?, results: FilterResults) {
+                filteredData = results.values as ContactList
+                notifyDataSetChanged()
+            }
+        }
+    }
+
     private fun isInCenter(position: Int) =
-        position > 0 && data[position - 1] !is Title && position < data.size - 1 && data[position + 1] !is Title
+        position > 0 && filteredData[position - 1] !is Title && position < filteredData.size - 1 && filteredData[position + 1] !is Title
 
     private fun isInTop(position: Int) =
-        position > 0 && data[position - 1] is Title && position < data.size - 1 && data[position + 1] !is Title
+        position > 0 && filteredData[position - 1] is Title && position < filteredData.size - 1 && filteredData[position + 1] !is Title
 
     private fun isInBottom(position: Int) =
-        position > 0 && data[position - 1] !is Title && position < data.size - 1 && data[position + 1] is Title
+        position > 0 && filteredData[position - 1] !is Title && ((position < filteredData.size - 1 && filteredData[position + 1] is Title) || (position == filteredData.size - 1))
 
     private fun String.getInitial() =
         if (length > 1) this.substring(0, 1) else if (isNotEmpty()) this[0].toString() else ""
